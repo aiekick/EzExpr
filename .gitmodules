@@ -1,0 +1,6 @@
+[submodule "EzExpr"]
+	path = EzExpr
+	url = https://github.com/aiekick/EzExpr.git
+[submodule "3rdparty/ImGuiPack"]
+	path = 3rdparty/ImGuiPack
+	url = https://github.com/aiekick/ImGuiPack.git
