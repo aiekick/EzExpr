@@ -57,7 +57,7 @@ void OneExpr::drawWidgets() {
     }
     if (!m_Expr.getParsedVars().empty() && m_Expr.isParsedVariableExist("x") && m_Expr.getParsedVars().size() > 1) {
         if (m_WidgetTypes.size() != (m_Expr.getParsedVars().size() - 1U)) {
-            ImGui::Text("Add a Input ?");
+            ImGui::Text("%s", "Add a Input ?");
             for (const auto& var : m_Expr.getParsedVars()) {
                 if (var.first == "x") {
                     continue;
@@ -70,7 +70,7 @@ void OneExpr::drawWidgets() {
                     }
                 }
             }
-            ImGui::Text("Add a Slider ?");
+            ImGui::Text("%s", "Add a Slider ?");
             for (const auto& var : m_Expr.getParsedVars()) {
                 if (var.first == "x") {
                     continue;
@@ -100,16 +100,18 @@ void OneExpr::drawWidgets() {
                 }
             } break;
             case WidgetType::WIDGET_SLIDER: {
-                ImGui::Text(var.first.c_str());
+                ImGui::Text("%s", var.first.c_str());
                 ImGui::SameLine(70.0f);
                 ImGui::PushID(var.first.c_str());
                 if (ImGui::SliderDoubleDefault(avail_width - 70.0f - ImGui::GetStyle().ItemSpacing.x, "##WIDGET_SLIDER",
-                                        &var.second, -10.0, 10.0, 0.0)) {
+                                               &var.second, -10.0, 10.0, 0.0)) {
                     m_Expr.set(var.first, var.second);
                     m_computeExpr();
                 }
                 ImGui::PopID();
             } break;
+            case WidgetType::Count:
+            default: break;
         }
     }
     ImGui::Separator();
