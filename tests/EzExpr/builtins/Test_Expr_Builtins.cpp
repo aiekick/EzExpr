@@ -161,17 +161,17 @@ bool Test_Expr_Builtin_Clamp_3() {
 // Tests for saturate
 bool Test_Expr_Builtin_Saturate_1() {
     ez::Expr ev;
-    return ev.parse("saturate(0.5, 0, 1)").eval().check(0.5);  // saturate(0.5, 0, 1) = 0.5
+    return ev.parse("saturate(0.5)").eval().check(0.5);  // saturate(0.5, 0, 1) = 0.5
 }
 
 bool Test_Expr_Builtin_Saturate_2() {
     ez::Expr ev;
-    return ev.parse("saturate(-0.5, 0, 1)").eval().check(0);  // saturate(-0.5, 0, 1) = 0
+    return ev.parse("saturate(-0.5)").eval().check(0);  // saturate(-0.5, 0, 1) = 0
 }
 
 bool Test_Expr_Builtin_Saturate_3() {
     ez::Expr ev;
-    return ev.parse("saturate(1.5, 0, 1)").eval().check(1);  // saturate(1.5, 0, 1) = 1
+    return ev.parse("saturate(1.5)").eval().check(1);  // saturate(1.5, 0, 1) = 1
 }
 
 // Tests for lerp
