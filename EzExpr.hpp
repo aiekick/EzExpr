@@ -856,7 +856,7 @@ protected:
 
     // https://www.shadertoy.com/???? : sqrt(v*v+k) with k >= 0
     double m_SmoothAbs(double vV, double vK) {
-        return ::std::sqrtf(vV * vV + ::std::abs(vK));
+        return ::std::sqrt(vV * vV + ::std::abs(vK));
     }
 
     // https://registry.khronos.org/OpenGL-Refpages/gl4/html/clamp.xhtml

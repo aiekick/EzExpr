@@ -4,6 +4,24 @@ set(PROJECT EzExpr_Test)
 enable_language(C CXX)
 project(${PROJECT} CXX)
 
+# Get compiler info
+set(CXX_FLAGS_STYLE_GNU OFF)
+set(CXX_FLAGS_STYLE_MSVC OFF)
+set(CXX_FLAGS_STYLE_CLANGCL OFF)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CXX_FLAGS_STYLE_GNU ON)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if ("${CMAKE_CXX_SIMULATE_ID}" STREQUAL "MSVC")
+        set(CXX_FLAGS_STYLE_CLANGCL ON)
+    else ()
+        set(CXX_FLAGS_STYLE_GNU ON)
+    endif ()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(CXX_FLAGS_STYLE_MSVC ON)
+else ()
+    message(FATAL_ERROR "Unsupported compiler!")
+endif ()
+
 file(GLOB_RECURSE PROJECT_TEST_SRC_RECURSE 
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/*.h 
@@ -13,6 +31,17 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${PROJECT_TEST_SRC_RECURSE})
 add_executable(${PROJECT} ${PROJECT_TEST_SRC_RECURSE})
 
 set_target_properties(${PROJECT} PROPERTIES FOLDER Tests)
+
+# Compiler flags
+target_compile_options(${PROJECT}
+    PRIVATE
+        ## GCC/Clang Flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_GNU}>:"-std=c++11">
+        ## MSVC flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_MSVC}>:"/std:c++11 /Z">
+        ## CLANG-CL flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_CLANGCL}>:"-std=c++11">
+)
 
 #############################################################
 #############################################################
