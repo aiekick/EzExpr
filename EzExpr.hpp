@@ -249,7 +249,6 @@ typedef ::std::unordered_map<String, double> ConstantContainer;
 
 // Structure representing a function with its number of arguments and behavior
 struct Function {
-    int precedence                = 0;
     UnaryFunctor unaryFunctor     = nullptr;
     BinaryFunctor binaryFunctor   = nullptr;
     TernaryFunctor ternaryFunctor = nullptr;
@@ -353,57 +352,64 @@ public:
         addConstant("e", M_E);    // e
 
         // Initialization of common unary functions
-        addFunction("-", 1, [](double a) { return -a; });
+        addFunction("-", [](double a) { return -a; });
 
-        addFunction("abs", 1, [](double a) { return ::std::abs(a); });
-        addFunction("floor", 1, [](double a) { return ::std::floor(a); });
-        addFunction("ceil", 1, [](double a) { return ::std::ceil(a); });
-        addFunction("round", 1, [](double a) { return ::std::round(a); });
+        addFunction("abs", [](double a) { return ::std::abs(a); });
+        addFunction("floor", [](double a) { return ::std::floor(a); });
+        addFunction("ceil", [](double a) { return ::std::ceil(a); });
+        addFunction("round", [](double a) { return ::std::round(a); });
 
-        addFunction("fract", 1, [](double a) { return a - ::std::floor(a); });
-        addFunction("sign", 1, [this](double a) { return m_Sign(a); });
+        addFunction("fract", [](double a) { return a - ::std::floor(a); });
+        addFunction("sign", [this](double a) { return m_Sign(a); });
 
-        addFunction("sin", 1, [](double a) { return ::std::sin(a); });
-        addFunction("cos", 1, [](double a) { return ::std::cos(a); });
-        addFunction("tan", 1, [](double a) { return ::std::tan(a); });
+        addFunction("sin", [](double a) { return ::std::sin(a); });
+        addFunction("cos", [](double a) { return ::std::cos(a); });
+        addFunction("tan", [](double a) { return ::std::tan(a); });
 
-        addFunction("asin", 1, [](double a) { return ::std::asin(a); });
-        addFunction("acos", 1, [](double a) { return ::std::acos(a); });
-        addFunction("atan", 1, [](double a) { return ::std::atan(a); });
+        addFunction("asin", [](double a) { return ::std::asin(a); });
+        addFunction("acos", [](double a) { return ::std::acos(a); });
+        addFunction("atan", [](double a) { return ::std::atan(a); });
 
-        addFunction("sinh", 1, [](double a) { return ::std::sinh(a); });
-        addFunction("cosh", 1, [](double a) { return ::std::cosh(a); });
-        addFunction("tanh", 1, [](double a) { return ::std::tanh(a); });
+        addFunction("sinh", [](double a) { return ::std::sinh(a); });
+        addFunction("cosh", [](double a) { return ::std::cosh(a); });
+        addFunction("tanh", [](double a) { return ::std::tanh(a); });
 
-        addFunction("asinh", 1, [](double a) { return ::std::asinh(a); });
-        addFunction("acosh", 1, [](double a) { return ::std::acosh(a); });
-        addFunction("atanh", 1, [](double a) { return ::std::atanh(a); });
+        addFunction("asinh", [](double a) { return ::std::asinh(a); });
+        addFunction("acosh", [](double a) { return ::std::acosh(a); });
+        addFunction("atanh", [](double a) { return ::std::atanh(a); });
 
-        addFunction("ln", 1, [](double a) { return ::std::log(a); });
-        addFunction("log", 1, [](double a) { return ::std::log(a); });
-        addFunction("log1p", 1, [](double a) { return ::std::log1p(a); });
-        addFunction("logb", 1, [](double a) { return ::std::logb(a); });
-        addFunction("log2", 1, [](double a) { return ::std::log2(a); });
-        addFunction("log10", 1, [](double a) { return ::std::log10(a); });
+        addFunction("ln", [](double a) { return ::std::log(a); });
+        addFunction("log", [](double a) { return ::std::log(a); });
+        addFunction("log1p", [](double a) { return ::std::log1p(a); });
+        addFunction("logb", [](double a) { return ::std::logb(a); });
+        addFunction("log2", [](double a) { return ::std::log2(a); });
+        addFunction("log10", [](double a) { return ::std::log10(a); });
 
-        addFunction("sqrt", 1, [](double a) { return ::std::sqrt(a); });
-        addFunction("exp", 1, [](double a) { return ::std::exp(a); });
+        addFunction("sqrt", [](double a) { return ::std::sqrt(a); });
+        addFunction("exp", [](double a) { return ::std::exp(a); });
+
+        addFunction("saturate", [this](double a) { return m_Clamp(a, 0.0, 1.0); });
 
         // Initialization of common binary functions
-        addFunction("mod", 1, [](double a, double b) { return ::std::fmod(a, b); });
-        addFunction("atan2", 1, [](double a, double b) { return ::std::atan2(a, b); });
-        addFunction("min", 1, [this](double a, double b) { return m_Min(a, b); });
-        addFunction("max", 1, [this](double a, double b) { return m_Max(a, b); });
-        addFunction("step", 1, [this](double a, double b) { return m_Step(a, b); });
-        addFunction("hypot", 1, [](double a, double b) { return ::std::hypot(a, b); });
-        addFunction("smoothabs", 1, [this](double a, double b) { return m_SmoothAbs(a, b); });
+        addFunction("mod", [](double a, double b) { return ::std::fmod(a, b); });
+        addFunction("pow",
+            [](double a, double b) { 
+            if (a < 0.0) {
+                throw ExprException(ErrorCode::EVALUATION_NAN, "Pow base value is negative");
+            }
+            return ::std::pow(a, b); });
+        addFunction("atan2", [](double a, double b) { return ::std::atan2(a, b); });
+        addFunction("min", [this](double a, double b) { return m_Min(a, b); });
+        addFunction("max", [this](double a, double b) { return m_Max(a, b); });
+        addFunction("step", [this](double a, double b) { return m_Step(a, b); });
+        addFunction("hypot", [](double a, double b) { return ::std::hypot(a, b); });
+        addFunction("smoothabs", [this](double a, double b) { return m_SmoothAbs(a, b); });
 
         // Initialization of common ternary functions
-        addFunction("clamp", 1, [this](double a, double b, double c) { return m_Clamp(a, b, c); });
-        addFunction("saturate", 1, [this](double a, double b, double c) { return m_Clamp(a, b, c); });
-        addFunction("lerp", 1, [this](double a, double b, double c) { return m_Mix(a, b, c); });
-        addFunction("mix", 1, [this](double a, double b, double c) { return m_Mix(a, b, c); });
-        addFunction("smoothstep", 1, [this](double a, double b, double c) { return m_SmoothStep(a, b, c); });
+        addFunction("clamp", [this](double a, double b, double c) { return m_Clamp(a, b, c); });
+        addFunction("lerp", [this](double a, double b, double c) { return m_Mix(a, b, c); });
+        addFunction("mix", [this](double a, double b, double c) { return m_Mix(a, b, c); });
+        addFunction("smoothstep", [this](double a, double b, double c) { return m_SmoothStep(a, b, c); });
     }
 
     // Method to parse an expression
@@ -454,9 +460,8 @@ public:
     }
 
     // Method to add a unary function
-    Expr& addFunction(const String& vName, int precedence, const UnaryFunctor& functor) {
+    Expr& addFunction(const String& vName, const UnaryFunctor& functor) {
         Function fun;
-        fun.precedence     = precedence;
         fun.unaryFunctor   = functor;
         fun.argCount       = 1;
         m_Functions[vName] = fun;
@@ -464,9 +469,8 @@ public:
     }
 
     // Method to add a binary function
-    Expr& addFunction(const String& vName, int precedence, const BinaryFunctor& functor) {
+    Expr& addFunction(const String& vName, const BinaryFunctor& functor) {
         Function fun;
-        fun.precedence     = precedence;
         fun.binaryFunctor  = functor;
         fun.argCount       = 2;
         m_Functions[vName] = fun;
@@ -474,9 +478,8 @@ public:
     }
 
     // Method to add a ternary function
-    Expr& addFunction(const String& vName, int precedence, const TernaryFunctor& functor) {
+    Expr& addFunction(const String& vName, const TernaryFunctor& functor) {
         Function fun;
-        fun.precedence     = precedence;
         fun.ternaryFunctor = functor;
         fun.argCount       = 3;
         m_Functions[vName] = fun;
@@ -656,7 +659,10 @@ protected:
                     }
                     result = left / right;
                 } else if (node.name == "^") {
-                    result = ::std::pow(left, right);
+                    if (left < 0.0) {
+                        throw ExprException(ErrorCode::EVALUATION_NAN, "Pow base value is negative");
+                    }
+                    result = ::std::pow (left, right);
                 } else if (node.name == "%") {
                     if (right == 0.0) {
                         throw ExprException(ErrorCode::DIVISION_BY_ZERO, "Division by zero");
