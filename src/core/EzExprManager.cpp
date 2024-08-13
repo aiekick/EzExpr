@@ -27,7 +27,7 @@ SOFTWARE.
 #define DEFAULT_EXPR "x"
 
 std::shared_ptr<OneExpr> OneExpr::create(const std::string& vLabel, const int32_t& vIdx) {
-    auto ret = std::make_shared<OneExpr>();
+    auto ret    = std::make_shared<OneExpr>();
     ret->m_This = ret;
     if (!ret->init(vLabel, vIdx)) {
         ret.reset();
@@ -36,8 +36,8 @@ std::shared_ptr<OneExpr> OneExpr::create(const std::string& vLabel, const int32_
 }
 
 bool OneExpr::init(const std::string& vLabel, const int32_t& vIdx) {
-    m_Label     = vLabel;
-    m_Idx       = vIdx;
+    m_Label = vLabel;
+    m_Idx   = vIdx;
     m_ExprInput.SetText(DEFAULT_EXPR);
     return true;
 }
@@ -51,8 +51,7 @@ void OneExpr::drawWidgets() {
     if (m_ErrorCode != ez::ErrorCode::NONE) {
         ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f), "%s", m_ErrorMsg.c_str());
     }
-    if (m_ExprInput.DisplayInputText(avail_width, m_Label, DEFAULT_EXPR, false,
-                                     70.0f)) {
+    if (m_ExprInput.DisplayInputText(avail_width, m_Label, DEFAULT_EXPR, false, 70.0f)) {
         m_computeExpr();
     }
     if (!m_Expr.getParsedVars().empty() && m_Expr.isParsedVariableExist("x") && m_Expr.getParsedVars().size() > 1) {
@@ -84,7 +83,6 @@ void OneExpr::drawWidgets() {
                 }
             }
         }
-        
     }
     for (auto& var : m_Expr.getDefinedVarsRef()) {
         if (var.first == "x") {
@@ -138,12 +136,12 @@ bool OneExpr::m_computeExpr() {
         m_ErrorMsg  = ex.what();
         return false;
     }
-    double rangeX = m_ChartLimits.Size().x;
-    double stepX  = rangeX / s_COUNT_POINTS;
-    double px     = m_ChartLimits.Min().x;
+    double rangeX         = m_ChartLimits.Size().x;
+    double stepX          = rangeX / s_COUNT_POINTS;
+    double px             = m_ChartLimits.Min().x;
     bool have_div_by_zero = false;
-    bool have_inf = false;
-    bool have_nan = false;
+    bool have_inf         = false;
+    bool have_nan         = false;
     for (size_t idx = 0U; idx < s_COUNT_POINTS; ++idx) {
         m_axisX[idx] = px;
         try {
