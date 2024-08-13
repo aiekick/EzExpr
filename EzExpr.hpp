@@ -28,6 +28,7 @@ SOFTWARE.
 #include <array>
 #include <math.h>
 #include <string>
+#include <vector>
 #include <limits>
 #include <memory>
 #include <chrono>
