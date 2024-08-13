@@ -128,22 +128,45 @@ void OneExpr::reComputeIfNeeded(const ImPlotRect& vRect) {
 }
 
 bool OneExpr::m_computeExpr() {
-    bool ret = false;
+    bool ret    = false;
+    m_ErrorCode = ez::ErrorCode::NONE;
+    m_ErrorMsg.clear();
     try {
-        m_ErrorCode = ez::ErrorCode::NONE;
-        m_ErrorMsg.clear();
         m_Expr.parse(m_ExprInput.GetText());
-        double rangeX = m_ChartLimits.Size().x;
-        double stepX  = rangeX / s_COUNT_POINTS;
-        double px     = m_ChartLimits.Min().x;
-        for (size_t idx = 0U; idx < s_COUNT_POINTS; ++idx) {
-            m_axisX[idx] = px;
-            m_axisY[idx] = m_Expr.set("x", px).eval().getResult();
-            px += stepX;
-        }
     } catch (const ez::ExprException& ex) {
         m_ErrorCode = ex.getCode();
         m_ErrorMsg  = ex.what();
+        return false;
+    }
+    double rangeX = m_ChartLimits.Size().x;
+    double stepX  = rangeX / s_COUNT_POINTS;
+    double px     = m_ChartLimits.Min().x;
+    bool have_div_by_zero = false;
+    bool have_inf = false;
+    bool have_nan = false;
+    for (size_t idx = 0U; idx < s_COUNT_POINTS; ++idx) {
+        m_axisX[idx] = px;
+        try {
+            m_axisY[idx] = m_Expr.set("x", px).eval().getResult();
+        } catch (const ez::ExprException& ex) {
+            m_ErrorCode = ex.getCode();
+            if (m_ErrorCode == ez::ErrorCode::DIVISION_BY_ZERO) {
+                have_div_by_zero = true;
+            } else if (m_ErrorCode == ez::ErrorCode::EVALUATION_INF) {
+                have_inf = true;
+            } else if (m_ErrorCode == ez::ErrorCode::EVALUATION_NAN) {
+                have_nan = true;
+            }
+            m_axisY[idx] = 0.0;
+        }
+        px += stepX;
+    }
+    if (have_div_by_zero) {
+        m_ErrorMsg += "\nSome portions have div by zero";
+    } else if (have_inf) {
+        m_ErrorMsg += "\nSome portions have inf value";
+    } else if (have_nan) {
+        m_ErrorMsg += "\nSome portions have nan value";
     }
     return ret;
 }
