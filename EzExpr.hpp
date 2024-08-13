@@ -248,11 +248,11 @@ typedef ::std::unordered_map<String, double> ConstantContainer;
 
 // Structure representing a function with its number of arguments and behavior
 struct Function {
-    int precedence = 0;
-    UnaryFunctor unaryFunctor;
-    BinaryFunctor binaryFunctor;
-    TernaryFunctor ternaryFunctor;
-    size_t argCount = 0U;
+    int precedence                = 0;
+    UnaryFunctor unaryFunctor     = nullptr;
+    BinaryFunctor binaryFunctor   = nullptr;
+    TernaryFunctor ternaryFunctor = nullptr;
+    size_t argCount               = 0U;
 };
 
 // Container to store available functions
@@ -292,7 +292,6 @@ enum class ErrorCode {
     FUNCTION_WRONG_ARGUMENTS_COUNT,
     Count
 };
-
 
 // Definition of possible node types in a syntax tree
 enum class NodeType {
@@ -349,8 +348,8 @@ private:
 public:
     Expr() {
         // Initialization of common constants
-        addConstant("pi", M_PI);     // PI
-        addConstant("e", M_E);       // e
+        addConstant("pi", M_PI);  // PI
+        addConstant("e", M_E);    // e
 
         // Initialization of common unary functions
         addFunction("-", 1, [](double a) { return -a; });
@@ -408,7 +407,7 @@ public:
 
     // Method to parse an expression
     Expr& parse(const String& vExpr) {
-        m_Expr      = vExpr;                       // Store the expression
+        m_Expr = vExpr;                            // Store the expression
         m_ParsedVariables.clear();                 // clearing discoverd vairable during parsing
         auto tokens = m_tokenize(m_Expr.c_str());  // Tokenize the expression
         size_t pos  = 0;
@@ -455,19 +454,31 @@ public:
 
     // Method to add a unary function
     Expr& addFunction(const String& vName, int precedence, const UnaryFunctor& functor) {
-        m_Functions[vName] = {precedence, functor, nullptr, nullptr, 1};  // Add the function with its precedence
+        Function fun;
+        fun.precedence     = precedence;
+        fun.unaryFunctor   = functor;
+        fun.argCount       = 1;
+        m_Functions[vName] = fun;
         return *this;
     }
 
     // Method to add a binary function
     Expr& addFunction(const String& vName, int precedence, const BinaryFunctor& functor) {
-        m_Functions[vName] = {precedence, nullptr, functor, nullptr, 2};
+        Function fun;
+        fun.precedence     = precedence;
+        fun.binaryFunctor  = functor;
+        fun.argCount       = 2;
+        m_Functions[vName] = fun;
         return *this;
     }
 
     // Method to add a ternary function
     Expr& addFunction(const String& vName, int precedence, const TernaryFunctor& functor) {
-        m_Functions[vName] = {precedence, nullptr, nullptr, functor, 3};
+        Function fun;
+        fun.precedence     = precedence;
+        fun.ternaryFunctor = functor;
+        fun.argCount       = 3;
+        m_Functions[vName] = fun;
         return *this;
     }
 
@@ -577,7 +588,6 @@ protected:
         }
         return tokens;
     }
-
 
     // Logs messages if verbose mode is enabled
     void m_log(const String& message) {
