@@ -34,5 +34,5 @@ jobs:
     - name: upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: EzExprEval_Demo_Unix
-        path: bin/EzExprEval_Demo_Unix
+        name: benchmark_results.md
+        path: bin/benchmark_results.md

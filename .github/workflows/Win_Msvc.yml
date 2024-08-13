@@ -32,5 +32,5 @@ jobs:
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: EzExprEval_Demo_Win32
-        path: bin\EzExprEval_Demo_Win32.exe
+        name: benchmark_results.md
+        path: bin/benchmark_results.md
