@@ -23,24 +23,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <EzExpr/Test_Expr.h>
-#include <EzExpr/parsings/Test_Expr_Parsings.h>
-#include <EzExpr/builtins/Test_Expr_Builtins.h>
 #include <EzExpr/constants/Test_Expr_Constants.h>
-#include <EzExpr/exceptions/Test_Expr_Exceptions.h>
+#include <EzExpr.hpp>
+
+////////////////////////////////////////////////////////////////////////////
+//// CONSTANTS /////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+bool Test_Expr_Constant_Parsing_PI() {
+    ez::Expr ev;
+    try {
+        if (!ev.parse("pi").eval().check(M_PI)) return false;
+    } catch (const ez::ExprException& e) {
+        if (e.getCode() != ez::ErrorCode::NONE) return false;
+    }
+    return true;
+}
+
+bool Test_Expr_Constant_Parsing_E() {
+    ez::Expr ev;
+    try {
+        if (!ev.parse("e").eval().check(M_E)) return false;
+    } catch (const ez::ExprException& e) {
+        if (e.getCode() != ez::ErrorCode::NONE) return false;
+    }
+    return true;
+}
 
 ////////////////////////////////////////////////////////////////////////////
 //// ENTRY POINT ///////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-#define IfTestCollectionExist(v, str) \
-    if (vTest.find(str) != std::string::npos) return v(vTest)
+#define IfTestExist(v) \
+    if (vTest == std::string(#v)) return v()
 
-bool Test_Expr(const std::string& vTest) {
-    IfTestCollectionExist(Test_Expr_Parsings_run_test, "Test_Expr_Parsing");
-    else IfTestCollectionExist(Test_Expr_Constants_run_test, "Test_Expr_Constant");
-    else IfTestCollectionExist(Test_Expr_Builtins_run_test, "Test_Expr_Builtin");
-    else IfTestCollectionExist(Test_Expr_Exceptions_run_test, "Test_Expr_Exception");
+bool Test_Expr_Constants_run_test(const std::string& vTest) {
+    // Constants
+    IfTestExist(Test_Expr_Constant_Parsing_PI);
+    else IfTestExist(Test_Expr_Constant_Parsing_E);
     // default
     return false;
 }

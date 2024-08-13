@@ -31,5 +31,5 @@ int main(int argc, char** argv) {
         printf("Exec test : %s\n", argv[1]);
         return Test_Expr(argv[1]) ? 0 : 1;
     }
-    return Test_Expr("Test_Expr_Error_EvaluationNaN_DivZeroZero") ? 0 : 1;
+    return Test_Expr("Test_Expr_Exception_DivisionByZero") ? 0 : 1;
 }

@@ -1,4 +1,5 @@
-﻿
+#pragma once
+
 /*
 MIT License
 
@@ -23,24 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <EzExpr/Test_Expr.h>
-#include <EzExpr/parsings/Test_Expr_Parsings.h>
-#include <EzExpr/builtins/Test_Expr_Builtins.h>
-#include <EzExpr/constants/Test_Expr_Constants.h>
-#include <EzExpr/exceptions/Test_Expr_Exceptions.h>
+#include <string>
 
-////////////////////////////////////////////////////////////////////////////
-//// ENTRY POINT ///////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-#define IfTestCollectionExist(v, str) \
-    if (vTest.find(str) != std::string::npos) return v(vTest)
-
-bool Test_Expr(const std::string& vTest) {
-    IfTestCollectionExist(Test_Expr_Parsings_run_test, "Test_Expr_Parsing");
-    else IfTestCollectionExist(Test_Expr_Constants_run_test, "Test_Expr_Constant");
-    else IfTestCollectionExist(Test_Expr_Builtins_run_test, "Test_Expr_Builtin");
-    else IfTestCollectionExist(Test_Expr_Exceptions_run_test, "Test_Expr_Exception");
-    // default
-    return false;
-}
+bool Test_Expr_Exceptions_run_test(const std::string& vTest);
