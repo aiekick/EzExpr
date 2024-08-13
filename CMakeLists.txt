@@ -28,13 +28,23 @@ endif()
 
 set(ORIGINAL_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_definitions(-DMSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++11 /Z")
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
-
+# Get compiler info
+set(CXX_FLAGS_STYLE_GNU OFF)
+set(CXX_FLAGS_STYLE_MSVC OFF)
+set(CXX_FLAGS_STYLE_CLANGCL OFF)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CXX_FLAGS_STYLE_GNU ON)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if ("${CMAKE_CXX_SIMULATE_ID}" STREQUAL "MSVC")
+        set(CXX_FLAGS_STYLE_CLANGCL ON)
+    else ()
+        set(CXX_FLAGS_STYLE_GNU ON)
+    endif ()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(CXX_FLAGS_STYLE_MSVC ON)
+else ()
+    message(FATAL_ERROR "Unsupported compiler!")
+endif ()
 
 include(cmake/3rdparty.cmake)
 
@@ -132,6 +142,17 @@ target_link_libraries(${PROJECT} PRIVATE
 	${GLFW_LIBRARIES}
 	${GLAD_LIBRARIES}
 	${IMGUIPACK_LIBRARIES})
+
+# Compiler flags
+target_compile_options(${PROJECT}
+    PRIVATE
+        ## GCC/Clang Flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_GNU}>:"-std=c++11">
+        ## MSVC flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_MSVC}>:"/std:c++11 /Z">
+        ## CLANG-CL flags
+        $<$<BOOL:${CXX_FLAGS_STYLE_CLANGCL}>:"-std=c++11">
+)
 
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${FINAL_BIN_DIR}")
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${FINAL_BIN_DIR}")
