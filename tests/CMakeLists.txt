@@ -7,6 +7,8 @@ project(${PROJECT} CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_definitions(-DPROJECT_PATH="${CMAKE_SOURCE_DIR}/bin")
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Z")
 endif ()
@@ -26,8 +28,6 @@ set_target_properties(${PROJECT} PROPERTIES FOLDER Tests)
 #############################################################
 
 target_include_directories(${PROJECT} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_definitions(-DTEST_SAMPLES_PATH="${CMAKE_SOURCE_DIR}/test_samples/")
 
 function(SetTest arg)
 	add_test("${arg}" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT}" "${arg}")
@@ -230,3 +230,21 @@ SetTest(Test_Expr_Exception_EvaluationNaN_DivZeroZero)
 SetTest(Test_Expr_Exception_EvaluationInf)
 SetTest(Test_Expr_Exception_EvaluationInf_Exp)
 SetTest(Test_Expr_Exception_EvaluationInf_Power)
+
+##########################################################
+## PERFOS ################################################
+##########################################################
+
+SetTest(Test_Expr_Perfo_All)
+SetTest(Test_Expr_Perfo_x_squared)
+SetTest(Test_Expr_Perfo_x_cubed)
+SetTest(Test_Expr_Perfo_sin_x)
+SetTest(Test_Expr_Perfo_sqrt_x)
+SetTest(Test_Expr_Perfo_cos_x_sin_y)
+SetTest(Test_Expr_Perfo_a_plus_5)
+SetTest(Test_Expr_Perfo_5_plus_a_plus_5)
+SetTest(Test_Expr_Perfo_abs_a_plus_5)
+SetTest(Test_Expr_Perfo_a_plus_5_times_2)
+SetTest(Test_Expr_Perfo_a_plus_5_times_2_alt)
+SetTest(Test_Expr_Perfo_sqrt_pow_a)
+SetTest(Test_Expr_Perfo_complex_fraction)
