@@ -114,7 +114,7 @@ bool Test_Expr_Perfo_x_squared(double slowdownThreshold, int iterations, std::os
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "x*x",  //
+        "x * x",  //
         [](ez::Expr& ev, double t) { return ev.set("x", t).eval().getResult(); },
         [](double t) { return t * t; },
         iterations,
@@ -131,7 +131,7 @@ bool Test_Expr_Perfo_x_cubed(double slowdownThreshold, int iterations, std::ostr
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "x*x*x",//
+        "x * x * x",//
         [](ez::Expr& ev, double t) { return ev.set("x", t).eval().getResult(); },
         [](double t) { return t * t * t; },
         iterations,
@@ -203,7 +203,7 @@ bool Test_Expr_Perfo_a_plus_5(double slowdownThreshold, int iterations, std::ost
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "a+5",  //
+        "a + 5",  //
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return t + 5.0; },
         iterations,
@@ -220,7 +220,7 @@ bool Test_Expr_Perfo_5_plus_a_plus_5(double slowdownThreshold, int iterations, s
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "5+a+5",//
+        "5 + a + 5",//
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return 5.0 + t + 5.0; },
         iterations,
@@ -237,7 +237,7 @@ bool Test_Expr_Perfo_abs_a_plus_5(double slowdownThreshold, int iterations, std:
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "abs(a+5)",//
+        "abs(a + 5)",//
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return std::abs(t + 5.0); },
         iterations,
@@ -254,7 +254,7 @@ bool Test_Expr_Perfo_a_plus_5_times_2(double slowdownThreshold, int iterations, 
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "(a+5)*2",//
+        "(a + 5) * 2",//
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return (t + 5.0) * 2.0; },
         iterations,
@@ -271,7 +271,7 @@ bool Test_Expr_Perfo_a_plus_5_times_2_alt(double slowdownThreshold, int iteratio
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "a+(5*2)",//
+        "a + (5 * 2)",//
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return t + (5.0 * 2.0); },
         iterations,
@@ -305,7 +305,7 @@ bool Test_Expr_Perfo_complex_fraction(double slowdownThreshold, int iterations, 
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "(1/(a+1)+2/(a+2)+3/(a+3))",//
+        "(1/(a + 1) + 2/(a + 2) + 3/(a + 3))",//
         [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
         [](double t) { return (1.0 / (t + 1.0)) + (2.0 / (t + 2.0)) + (3.0 / (t + 3.0)); },
         iterations,
