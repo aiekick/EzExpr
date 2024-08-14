@@ -637,43 +637,7 @@ protected:
         switch (node.type) {
             case NodeType::NUMBER: {
                 vOutResult = node.value;
-                break;
-            }
-            case NodeType::VARIABLE: {
-                auto it = m_DefinedVariables.find(node.name);
-                if (it == m_DefinedVariables.end()) {
-                    throw ExprException(ErrorCode::VARIABLE_NOT_FOUND, "Variable not found: " + node.name);
-                }
-                vOutResult = it->second;
-                break;
-            }
-            case NodeType::FUNCTION: {
-                auto it = m_Functions.find(node.name);
-                if (it == m_Functions.end()) {
-                    // Special case handling for the "!" operator (factorial)
-                    if (node.name[0] == '!') {
-                        m_evalNode(*node.childs[0], node.tmp[0]);
-                        vOutResult = m_Factorial(node.tmp[0]);  // Call the factorial function
-                    } else {
-                        throw ExprException(ErrorCode::FUNCTION_NOT_FOUND, "Function not found: " + node.name);
-                    }
-                } else {
-                    if (it->second.argCount == 1) {
-                        m_evalNode(*node.childs[0], node.tmp[0]);
-                        vOutResult = it->second.unaryFunctor(node.tmp[0]);  // first
-                    } else if (it->second.argCount == 2) {
-                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
-                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
-                        vOutResult = it->second.binaryFunctor(node.tmp[0], node.tmp[1]);
-                    } else if (it->second.argCount == 3) {
-                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
-                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
-                        m_evalNode(*node.childs[2], node.tmp[2]);  // third
-                        vOutResult = it->second.ternaryFunctor(node.tmp[0], node.tmp[1], node.tmp[2]);
-                    }
-                }
-                break;
-            }
+            } break;
             case NodeType::OPERATOR: {
                 m_evalNode(*node.childs[0], node.tmp[0]);  // left
                 m_evalNode(*node.childs[1], node.tmp[1]);  // right
@@ -699,8 +663,40 @@ protected:
                     }
                     vOutResult = ::std::fmod(node.tmp[0], node.tmp[1]);
                 }
-                break;
-            }
+            } break;
+            case NodeType::VARIABLE: {
+                auto it = m_DefinedVariables.find(node.name);
+                if (it == m_DefinedVariables.end()) {
+                    throw ExprException(ErrorCode::VARIABLE_NOT_FOUND, "Variable not found: " + node.name);
+                }
+                vOutResult = it->second;
+            } break;
+            case NodeType::FUNCTION: {
+                auto it = m_Functions.find(node.name);
+                if (it == m_Functions.end()) {
+                    // Special case handling for the "!" operator (factorial)
+                    if (node.name[0] == '!') {
+                        m_evalNode(*node.childs[0], node.tmp[0]);
+                        vOutResult = m_Factorial(node.tmp[0]);  // Call the factorial function
+                    } else {
+                        throw ExprException(ErrorCode::FUNCTION_NOT_FOUND, "Function not found: " + node.name);
+                    }
+                } else {
+                    if (it->second.argCount == 1) {
+                        m_evalNode(*node.childs[0], node.tmp[0]);
+                        vOutResult = it->second.unaryFunctor(node.tmp[0]);  // first
+                    } else if (it->second.argCount == 2) {
+                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
+                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
+                        vOutResult = it->second.binaryFunctor(node.tmp[0], node.tmp[1]);
+                    } else if (it->second.argCount == 3) {
+                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
+                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
+                        m_evalNode(*node.childs[2], node.tmp[2]);  // third
+                        vOutResult = it->second.ternaryFunctor(node.tmp[0], node.tmp[1], node.tmp[2]);
+                    }
+                }
+            } break;
             default:
                 throw ExprException(ErrorCode::UNKNOWN_NODE_TYPE, "Unknown node type");
         }
@@ -745,8 +741,8 @@ protected:
             Node opNode;
             opNode.type       = NodeType::OPERATOR;
             opNode.name       = op;
-            opNode.childs[0]  = ::std::make_shared<Node>(node);
             opNode.childCount = 2;
+            opNode.childs[0]  = ::std::make_shared<Node>(node);
             opNode.childs[1]  = ::std::make_shared<Node>(rightNode);
             node              = opNode;
         }

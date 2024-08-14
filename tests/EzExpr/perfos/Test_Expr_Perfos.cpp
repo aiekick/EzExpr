@@ -59,7 +59,7 @@ static bool Bench(const std::string& vEzExpr,
             }
         }
         auto end_ez = std::chrono::high_resolution_clock::now();
-        vOutEzExprTotalTime = std::floor(std::chrono::duration<double, std::milli>(end_ez - start_ez).count() * 100.0) / 100.0;
+        vOutEzExprTotalTime = std::chrono::duration<double, std::milli>(end_ez - start_ez).count();
 
         // Cpp Eval
         auto start_cpp = std::chrono::high_resolution_clock::now();
@@ -70,15 +70,15 @@ static bool Bench(const std::string& vEzExpr,
             }
         }
         auto end_cpp = std::chrono::high_resolution_clock::now();
-        vOutCppTotalTime = std::floor(std::chrono::duration<double, std::milli>(end_cpp - start_cpp).count() * 100.0) / 100.0;
+        vOutCppTotalTime = std::chrono::duration<double, std::milli>(end_cpp - start_cpp).count();
 
         double slowdown_total_percentage = ((vOutEzExprTotalTime / vOutCppTotalTime) - 1.0) * 100.0;
 
         if (outputStreamPtr != nullptr) {
             (*outputStreamPtr) <<                      //
                 "| " << vEzExpr <<                     //
-                " | " << vOutEzExprTotalTime <<        //
-                " | " << vOutCppTotalTime <<           //
+                " | " << std::floor(vOutEzExprTotalTime * 100.0) / 100.0 <<        //
+                " | " << std::floor(vOutCppTotalTime * 100.0) / 100.0 <<     //
                 " | " << slowdown_total_percentage <<  //
                 "% |\n";
         }
