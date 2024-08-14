@@ -40,11 +40,11 @@ SOFTWARE.
 
 #ifndef DONT_DEFINE_DEFAULT_BUILTINS
 #define DEFINE_DEFAULT_BUILTINS
-#endif // DONT_DEFINE_DEFAULT_BUILTINS
+#endif  // DONT_DEFINE_DEFAULT_BUILTINS
 
 #ifndef DONT_USE_PERFO_MEASURING
 #define USE_PERFO_MEASURING
-#endif // DONT_USE_PERFO_MEASURING
+#endif  // DONT_USE_PERFO_MEASURING
 
 namespace ez {
 
@@ -108,6 +108,11 @@ public:
     String(String&& other) noexcept : m_Data(other.m_Data), m_Length(other.m_Length) {
         other.m_Data   = nullptr;
         other.m_Length = 0;
+    }
+
+    // Copy assignment operator
+    char operator[](const size_t idx) {
+        return m_Data[idx];  // no verification
     }
 
     // Copy assignment operator
@@ -360,7 +365,7 @@ public:
     Expr() {
 #ifdef DEFINE_DEFAULT_BUILTINS
         defineDefaultBuiltins();
-#endif // DEFINE_DEFAULT_BUILTINS
+#endif  // DEFINE_DEFAULT_BUILTINS
     }
 
     void defineDefaultBuiltins() {
@@ -628,7 +633,7 @@ protected:
     }
 
     // Evaluate a node in the syntax tree
-    void m_evalNode(Node& node, double &vOutResult) {
+    void m_evalNode(Node& node, double& vOutResult) {
         switch (node.type) {
             case NodeType::NUMBER: {
                 vOutResult = node.value;
@@ -646,7 +651,7 @@ protected:
                 auto it = m_Functions.find(node.name);
                 if (it == m_Functions.end()) {
                     // Special case handling for the "!" operator (factorial)
-                    if (node.name == "!") {
+                    if (node.name[0] == '!') {
                         m_evalNode(*node.childs[0], node.tmp[0]);
                         vOutResult = m_Factorial(node.tmp[0]);  // Call the factorial function
                     } else {
@@ -655,40 +660,40 @@ protected:
                 } else {
                     if (it->second.argCount == 1) {
                         m_evalNode(*node.childs[0], node.tmp[0]);
-                        vOutResult = it->second.unaryFunctor(node.tmp[0]);//first
+                        vOutResult = it->second.unaryFunctor(node.tmp[0]);  // first
                     } else if (it->second.argCount == 2) {
-                       m_evalNode(*node.childs[0], node.tmp[0]);//first
-                       m_evalNode(*node.childs[1], node.tmp[1]);//second
-                       vOutResult = it->second.binaryFunctor(node.tmp[0], node.tmp[1]);
+                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
+                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
+                        vOutResult = it->second.binaryFunctor(node.tmp[0], node.tmp[1]);
                     } else if (it->second.argCount == 3) {
-                        m_evalNode(*node.childs[0], node.tmp[0]);//first
-                        m_evalNode(*node.childs[1], node.tmp[1]);//second
-                        m_evalNode(*node.childs[2], node.tmp[2]);//third
+                        m_evalNode(*node.childs[0], node.tmp[0]);  // first
+                        m_evalNode(*node.childs[1], node.tmp[1]);  // second
+                        m_evalNode(*node.childs[2], node.tmp[2]);  // third
                         vOutResult = it->second.ternaryFunctor(node.tmp[0], node.tmp[1], node.tmp[2]);
                     }
                 }
                 break;
             }
             case NodeType::OPERATOR: {
-                m_evalNode(*node.childs[0], node.tmp[0]);//left
-                m_evalNode(*node.childs[1], node.tmp[1]);//right
-                if (node.name == "+") {
+                m_evalNode(*node.childs[0], node.tmp[0]);  // left
+                m_evalNode(*node.childs[1], node.tmp[1]);  // right
+                if (node.name[0] == '+') {
                     vOutResult = node.tmp[0] + node.tmp[1];
-                } else if (node.name == "-") {
+                } else if (node.name[0] == '-') {
                     vOutResult = node.tmp[0] - node.tmp[1];
-                } else if (node.name == "*") {
+                } else if (node.name[0] == '*') {
                     vOutResult = node.tmp[0] * node.tmp[1];
-                } else if (node.name == "/") {
+                } else if (node.name[0] == '/') {
                     if (node.tmp[1] == 0.0) {
                         throw ExprException(ErrorCode::DIVISION_BY_ZERO, "Division by zero");
                     }
                     vOutResult = node.tmp[0] / node.tmp[1];
-                } else if (node.name == "^") {
+                } else if (node.name[0] == '^') {
                     if (node.tmp[0] < 0.0) {
                         throw ExprException(ErrorCode::EVALUATION_NAN, "Pow base value is negative");
                     }
                     vOutResult = ::std::pow(node.tmp[0], node.tmp[1]);
-                } else if (node.name == "%") {
+                } else if (node.name[0] == '%') {
                     if (node.tmp[1] == 0.0) {
                         throw ExprException(ErrorCode::DIVISION_BY_ZERO, "Division by zero");
                     }
