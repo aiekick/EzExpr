@@ -33,7 +33,7 @@ SOFTWARE.
 
 static bool Bench(const std::string& vEzExpr,
                   const std::function<double(ez::Expr& vEv, double)>& vEzExprIteration,
-                  const std::function<double(int)>& vCppExpr,
+                  const std::function<double(double)>& vCppExpr,
                   int vIterations,
                   double slowdownThreshold,
                   double& vOutEzExprTotalTime,
@@ -184,12 +184,10 @@ bool Test_Expr_Perfo_cos_x_sin_y(double slowdownThreshold, int iterations, std::
     return Bench(
         "cos(x) * sin(y)",//
         [](ez::Expr& ev, double t) {
-            double x = t, y = t + 1.0;
-            return ev.set("x", x).set("y", y).eval().getResult();
+            return ev.set("x", t).set("y", t + 1.0).eval().getResult();
         },
         [](double t) {
-            double x = t, y = t + 1.0;
-            return std::cos(x) * std::sin(y);
+            return std::cos(t) * std::sin(t + 1.0);
         },
         iterations,
         slowdownThreshold,
@@ -205,8 +203,16 @@ bool Test_Expr_Perfo_a_plus_5(double slowdownThreshold, int iterations, std::ost
     double cpp_expr_total_time, cpp_expr_avg_time;
 
     return Bench(
-        "a+5", //
-        [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); }, [](double t) { return t + 5.0; }, iterations, slowdownThreshold, ez_expr_total_time, ez_expr_avg_time, cpp_expr_total_time, cpp_expr_avg_time, outputStreamPtr);
+        "a+5",  //
+        [](ez::Expr& ev, double t) { return ev.set("a", t).eval().getResult(); },
+        [](double t) { return t + 5.0; },
+        iterations,
+        slowdownThreshold,
+        ez_expr_total_time,
+        ez_expr_avg_time,
+        cpp_expr_total_time,
+        cpp_expr_avg_time,
+        outputStreamPtr);
 }
 
 bool Test_Expr_Perfo_5_plus_a_plus_5(double slowdownThreshold, int iterations, std::ostream* outputStreamPtr) {
@@ -359,7 +365,7 @@ bool Test_Expr_Perfos_run_test(const std::string& vTest) {
     int iterations = 1000;
     // Parsing
     IfTestExist(Test_Expr_Perfo_All);
-    /* else IfTestBenchExist(Test_Expr_Perfo_x_squared);
+    else IfTestBenchExist(Test_Expr_Perfo_x_squared);
     else IfTestBenchExist(Test_Expr_Perfo_x_cubed);
     else IfTestBenchExist(Test_Expr_Perfo_sin_x);
     else IfTestBenchExist(Test_Expr_Perfo_sqrt_x);
@@ -370,7 +376,7 @@ bool Test_Expr_Perfos_run_test(const std::string& vTest) {
     else IfTestBenchExist(Test_Expr_Perfo_a_plus_5_times_2);
     else IfTestBenchExist(Test_Expr_Perfo_a_plus_5_times_2_alt);
     else IfTestBenchExist(Test_Expr_Perfo_sqrt_pow_a);
-    else IfTestBenchExist(Test_Expr_Perfo_complex_fraction);*/
+    else IfTestBenchExist(Test_Expr_Perfo_complex_fraction);
     // default
     return false;
 }

@@ -38,6 +38,14 @@ SOFTWARE.
 #include <functional>
 #include <unordered_map>
 
+#ifndef DONT_DEFINE_DEFAULT_BUILTINS
+#define DEFINE_DEFAULT_BUILTINS
+#endif // DONT_DEFINE_DEFAULT_BUILTINS
+
+#ifndef DONT_USE_PERFO_MEASURING
+#define USE_PERFO_MEASURING
+#endif // DONT_USE_PERFO_MEASURING
+
 namespace ez {
 
 // Class that encapsulates a string
@@ -308,6 +316,7 @@ struct Node {
     String name;
     double value = 0.0;
     ::std::array< ::std::shared_ptr<Node>, 3> childs{};  // Array of pointers to child nodes
+    ::std::array<double, 3> tmp{};                       // for avoid allocation during evaluation
     size_t childCount = 0;
 };
 
@@ -344,9 +353,17 @@ private:
     bool m_Verbose      = false;                              // Verbose mode
     ::std::stringstream m_printExpr;                          // Stream to print the expression and result
     ::std::chrono::duration<double, ::std::milli> m_Elapsed;  // Evaluation time
+    ::std::chrono::steady_clock::time_point m_StartTime;
+    ::std::chrono::steady_clock::time_point m_EndTime;
 
 public:
     Expr() {
+#ifdef DEFINE_DEFAULT_BUILTINS
+        defineDefaultBuiltins();
+#endif // DEFINE_DEFAULT_BUILTINS
+    }
+
+    void defineDefaultBuiltins() {
         // Initialization of common constants
         addConstant("pi", M_PI);  // PI
         addConstant("e", M_E);    // e
@@ -388,12 +405,14 @@ public:
         addFunction("sqrt", [](double a) { return ::std::sqrt(a); });
         addFunction("exp", [](double a) { return ::std::exp(a); });
 
+        addFunction("fact", [this](double a) { return m_Factorial(a); });
+
         addFunction("saturate", [this](double a) { return m_Clamp(a, 0.0, 1.0); });
 
         // Initialization of common binary functions
         addFunction("mod", [](double a, double b) { return ::std::fmod(a, b); });
         addFunction("pow",
-            [](double a, double b) { 
+                    [](double a, double b) { 
             if (a < 0.0) {
                 throw ExprException(ErrorCode::EVALUATION_NAN, "Pow base value is negative");
             }
@@ -446,11 +465,24 @@ public:
 
     // Method to evaluate the expression
     Expr& eval() {
-        auto startTime = ::std::chrono::steady_clock::now();  // Start time
-        m_EvalResult   = m_evalNode(m_RootExpr);              // Evaluate the root of the syntax tree
-        auto endTime   = ::std::chrono::steady_clock::now();  // End time
-        m_Elapsed      = endTime - startTime;                 // Calculate elapsed time
+        m_evalNode(m_RootExpr, m_EvalResult);  // Evaluate the root of the syntax tree
         return *this;
+    }
+
+    Expr& startTime() {
+        m_StartTime = ::std::chrono::steady_clock::now();  // Start time
+        return *this;
+    }
+
+    Expr& endTime() {
+        m_EndTime = ::std::chrono::steady_clock::now();  // End time
+        return *this;
+    }
+
+    // Returns the evaluation time in milliseconds
+    double getEvalTime() {
+        m_Elapsed = m_EndTime - m_StartTime;
+        return m_Elapsed.count();
     }
 
     // Method to add a constant
@@ -512,11 +544,6 @@ public:
     // Checks if the evaluation result is close to a given value
     bool check(const double vValue) {
         return (::std::abs(m_EvalResult - vValue) < 0.001);
-    }
-
-    // Returns the evaluation time in milliseconds
-    double getEvalTime() {
-        return m_Elapsed.count();
     }
 
     // test if a variable found during parsing exist
@@ -601,12 +628,10 @@ protected:
     }
 
     // Evaluate a node in the syntax tree
-    double m_evalNode(const Node& node) {
-        double result = 0.0;
-
+    void m_evalNode(Node& node, double &vOutResult) {
         switch (node.type) {
             case NodeType::NUMBER: {
-                result = node.value;
+                vOutResult = node.value;
                 break;
             }
             case NodeType::VARIABLE: {
@@ -614,7 +639,7 @@ protected:
                 if (it == m_DefinedVariables.end()) {
                     throw ExprException(ErrorCode::VARIABLE_NOT_FOUND, "Variable not found: " + node.name);
                 }
-                result = it->second;
+                vOutResult = it->second;
                 break;
             }
             case NodeType::FUNCTION: {
@@ -622,52 +647,52 @@ protected:
                 if (it == m_Functions.end()) {
                     // Special case handling for the "!" operator (factorial)
                     if (node.name == "!") {
-                        double operand = m_evalNode(*node.childs[0]);
-                        result         = m_Factorial(operand);  // Call the factorial function
+                        m_evalNode(*node.childs[0], node.tmp[0]);
+                        vOutResult = m_Factorial(node.tmp[0]);  // Call the factorial function
                     } else {
                         throw ExprException(ErrorCode::FUNCTION_NOT_FOUND, "Function not found: " + node.name);
                     }
                 } else {
                     if (it->second.argCount == 1) {
-                        double operand = m_evalNode(*node.childs[0]);
-                        result         = it->second.unaryFunctor(operand);
+                        m_evalNode(*node.childs[0], node.tmp[0]);
+                        vOutResult = it->second.unaryFunctor(node.tmp[0]);//first
                     } else if (it->second.argCount == 2) {
-                        double left  = m_evalNode(*node.childs[0]);
-                        double right = m_evalNode(*node.childs[1]);
-                        result       = it->second.binaryFunctor(left, right);
+                       m_evalNode(*node.childs[0], node.tmp[0]);//first
+                       m_evalNode(*node.childs[1], node.tmp[1]);//second
+                       vOutResult = it->second.binaryFunctor(node.tmp[0], node.tmp[1]);
                     } else if (it->second.argCount == 3) {
-                        double first  = m_evalNode(*node.childs[0]);
-                        double second = m_evalNode(*node.childs[1]);
-                        double third  = m_evalNode(*node.childs[2]);
-                        result        = it->second.ternaryFunctor(first, second, third);
+                        m_evalNode(*node.childs[0], node.tmp[0]);//first
+                        m_evalNode(*node.childs[1], node.tmp[1]);//second
+                        m_evalNode(*node.childs[2], node.tmp[2]);//third
+                        vOutResult = it->second.ternaryFunctor(node.tmp[0], node.tmp[1], node.tmp[2]);
                     }
                 }
                 break;
             }
             case NodeType::OPERATOR: {
-                double left  = m_evalNode(*node.childs[0]);
-                double right = m_evalNode(*node.childs[1]);
+                m_evalNode(*node.childs[0], node.tmp[0]);//left
+                m_evalNode(*node.childs[1], node.tmp[1]);//right
                 if (node.name == "+") {
-                    result = left + right;
+                    vOutResult = node.tmp[0] + node.tmp[1];
                 } else if (node.name == "-") {
-                    result = left - right;
+                    vOutResult = node.tmp[0] - node.tmp[1];
                 } else if (node.name == "*") {
-                    result = left * right;
+                    vOutResult = node.tmp[0] * node.tmp[1];
                 } else if (node.name == "/") {
-                    if (right == 0.0) {
+                    if (node.tmp[1] == 0.0) {
                         throw ExprException(ErrorCode::DIVISION_BY_ZERO, "Division by zero");
                     }
-                    result = left / right;
+                    vOutResult = node.tmp[0] / node.tmp[1];
                 } else if (node.name == "^") {
-                    if (left < 0.0) {
+                    if (node.tmp[0] < 0.0) {
                         throw ExprException(ErrorCode::EVALUATION_NAN, "Pow base value is negative");
                     }
-                    result = ::std::pow (left, right);
+                    vOutResult = ::std::pow(node.tmp[0], node.tmp[1]);
                 } else if (node.name == "%") {
-                    if (right == 0.0) {
+                    if (node.tmp[1] == 0.0) {
                         throw ExprException(ErrorCode::DIVISION_BY_ZERO, "Division by zero");
                     }
-                    result = ::std::fmod(left, right);
+                    vOutResult = ::std::fmod(node.tmp[0], node.tmp[1]);
                 }
                 break;
             }
@@ -676,17 +701,15 @@ protected:
         }
 
         // Vérification du résultat pour NaN ou Inf
-        if (::std::isnan(result)) {
+        if (::std::isnan(vOutResult)) {
             throw ExprException(ErrorCode::EVALUATION_NAN, "Result is NaN");
-        } else if (::std::isinf(result)) {
+        } else if (::std::isinf(vOutResult)) {
             throw ExprException(ErrorCode::EVALUATION_INF, "Result is Inf");
         }
 
         if (m_Verbose) {
-            m_log("Evaluating Node: " + String::fromDouble(result) + "\n");
+            m_log("Evaluating Node: " + String::fromDouble(vOutResult) + "\n");
         }
-
-        return result;
     }
 
     // Parse an expression to create a syntax tree
