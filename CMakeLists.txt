@@ -29,9 +29,17 @@ if(NOT CMAKE_DEBUG_POSTFIX)
   set(CMAKE_DEBUG_POSTFIX _debug)
 endif()
 
+option(USE_TRACY_PROFILER "Enable Tracy Profiler" OFF)
 if (UNIX)
 	option(USE_LEAK_SANITIZER "Enable the Leak Sanitizer" OFF)
 endif()
+
+if (USE_TRACY_PROFILER)
+	add_definitions(-DPROFILER_INCLUDE="${CMAKE_SOURCE_DIR}/3rdparty/tracy/public/tracy/Tracy.hpp")
+	add_definitions(-DTRACY_ON_DEMAND=ON)
+	add_definitions(-DTRACY_ENABLE=ON)
+	set(TRACY_LIBRARIES TracyClient)
+endif ()
 
 include(cmake/3rdparty.cmake)
 
@@ -128,8 +136,21 @@ target_link_libraries(${PROJECT} PRIVATE
 	${OPENGL_LIBRARIES}
 	${GLFW_LIBRARIES}
 	${GLAD_LIBRARIES}
-	${IMGUIPACK_LIBRARIES})
+	${IMGUIPACK_LIBRARIES}
+)
 
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${FINAL_BIN_DIR}")
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${FINAL_BIN_DIR}")
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${FINAL_BIN_DIR}")
+
+if (USE_TRACY_PROFILER)
+	## remove_definitions(-DTRACY_ENABLE)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/tracy)
+	
+	set_target_properties(TracyClient PROPERTIES FOLDER 3rdparty/Shared/tracy)
+	set_target_properties(capstone PROPERTIES FOLDER 3rdparty/Shared/tracy)
+
+	set_target_properties(TracyClient PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${FINAL_BIN_DIR}")
+	set_target_properties(TracyClient PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${FINAL_BIN_DIR}")
+	set_target_properties(TracyClient PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${FINAL_BIN_DIR}")
+endif()
